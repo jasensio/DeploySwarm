@@ -1,1 +1,2 @@
 consul_ip: 192.168.88.210
+ntp_timezone: Europe/Madrid

@@ -1,35 +1,76 @@
 ---
 - name: Install libselinux-python
   yum: name=libselinux-python state=present
-
+  tags:
+    - base
+    - yum
 - name: install yum repo
   copy: owner=root src=files/docker.repo dest=/etc/yum.repos.d/docker.repo
+  tags:
+    - base
+    - yum
 
 - name: making sure epel installed
   yum: name=epel-release state=present
+  tags:
+    - base
+    - yum
 
 - name: Disable auto-start Firewalld
   service: name=iptables enabled=no
+  tags:
+    - base
+    - security
 
 - name: Disable SELinux
   selinux: state=disabled
+  tags:
+    - base
+    - security
 
 #- name: SELinux in Permissive mode
 #  selinux: policy=targeted state=permissive
+
+- name: Install ntp 
+  yum: name=ntp state=present
+  tags:
+    - base
+    - ntp
+ 
+- name: Change TimeZone
+  command: timedatectl set-timezone {{ntp_timezone }} 
+  tags:
+    - base
+    - ntp
+ 
+- name: Install in Crontab ntp command
+  cron: name="update ntp time" minute="30" job="ntpd -q -u ntp:ntp" 
+  tags:
+    - base
+    - ntp
  
 - name: Stopping daemon Firewalld
   service: name=firewalld state=stopped
   register: command_result
   failed_when: "command_result|failed and 'systemd could not find the requested service' not in command_result.msg"
+  tags:
+    - base
+    - security
 
 - name: Install  iptables
   yum: name={{ item }} state=present
   with_items:
     - iptables
     - iptables-services
+  tags:
+    - base
+    - security
 
 - name: auto-start IPtables
   service: name=iptables enabled=yes
+  tags:
+    - base
+    - security
 
 - name: Inser IPtables mark in config file
   lineinfile:
@@ -39,6 +80,9 @@
     line: "# Reglas INPUT  necesarias para Docker"
   notify:
     - restart iptables
+  tags:
+    - base
+    - security
 
 - name: Inser IPtables rule for internal bridge
   lineinfile:
@@ -48,25 +92,48 @@
     line: "-A INPUT -i docker0 -j ACCEPT"
   notify:
     - restart iptables
-
+  tags:
+    - base
+    - security
 
 - name: Install docker
   yum: name={{ item }} state=present
   with_items:
      - docker-engine
      - python-docker-py
+  tags:
+    - base
+    - docker
 
 - name: auto-start Docker
   service: name=docker enabled=yes     
+  tags:
+    - base
+    - docker
 
 - name: making sure pip installed
   yum: name=python-pip state=present 
+  tags:
+    - base
+    - docker
 
 - name: Install docker-compose through pip
   pip: name=docker-compose state=present
+  tags:
+    - base
+    - docker
 
+- name: Actualizar la librería "SSL"
+  command: pip install backports.ssl_match_hostname --upgrade
+  tags:
+    - base
+    - docker
+ 
 - name: Demonio Docker running
   service: name=docker state=started
+  tags:
+    - base
+    - docker
  
 - name: Demonio IPtables running
   service: name=iptables state=started
