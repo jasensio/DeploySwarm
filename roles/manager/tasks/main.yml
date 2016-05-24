@@ -1,0 +1,42 @@
+---
+
+- name: Inser IPtables rules per docker Manager
+  lineinfile:
+    dest: /etc/sysconfig/iptables
+    regexp: "^-A INPUT -p tcp -m state --state NEW -m tcp --dport 4000 -j ACCEPT$"
+    insertafter: "# Reglas INPUT  necesarias para Docker"
+    line: "-A INPUT -p tcp -m state --state NEW -m tcp --dport 4000 -j ACCEPT"
+  notify:
+    - restart iptables
+    - restart docker
+
+- name: Inser IPtables rules per docker node
+  lineinfile:
+    dest: /etc/sysconfig/iptables
+    regexp: "^-A INPUT -p tcp -m state --state NEW -m tcp --dport 2375 -j ACCEPT$"
+    insertafter: "# Reglas INPUT  necesarias para Docker"
+    line: "-A INPUT -p tcp -m state --state NEW -m tcp --dport 2375 -j ACCEPT"
+  notify:
+    - restart iptables
+    - restart docker
+
+- name: Crear directorio para docker en systemd
+  file: path=/etc/systemd/system/docker.service.d state=directory mode=0755
+
+- name: Configuración del demonio de Docker
+  template: src=templates/docker.conf.j2 dest=/etc/systemd/system/docker.service.d/docker.conf
+  notify:
+    - reload systemd
+    - restart docker
+
+- name: install Swarn Manager Docker
+  docker:
+     image: swarm
+     name: swarm-manager
+     expose:
+     - 4000
+     ports:
+     - 4000:4000   
+     command: -debug manage  -H :4000 --replication --advertise {{ ansible_default_ipv4.address }}:4000 consul://{{ consul_ip }}:8500
+     restart_policy: always
+

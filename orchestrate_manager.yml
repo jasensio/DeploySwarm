@@ -1,0 +1,3 @@
+- include: common.yml
+- include: manager.yml
+- include: consul.yml

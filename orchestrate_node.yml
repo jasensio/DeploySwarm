@@ -1,0 +1,3 @@
+- include: common.yml
+- include: node.yml
+- include: nfs-client.yml

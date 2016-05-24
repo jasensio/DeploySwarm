@@ -1,0 +1,29 @@
+---
+
+- name: Inser IPtables rules per docker Consul
+  lineinfile:
+    dest: /etc/sysconfig/iptables
+    regexp: "^-A INPUT -p tcp -m state --state NEW -m tcp --dport 8500 -j ACCEPT$"
+    insertafter: "# Reglas INPUT  necesarias para Docker"
+    line: "-A INPUT -p tcp -m state --state NEW -m tcp --dport 8500 -j ACCEPT"
+  notify:
+    - restart iptables
+    - restart docker
+
+- name: Crear directorio para docker en systemd
+  file: path=/etc/systemd/system/docker.service.d state=directory mode=0755
+
+- name: Configuración del demonio de Docker
+  template: src=templates/docker.conf.j2 dest=/etc/systemd/system/docker.service.d/docker.conf
+  notify:
+    - reload systemd
+    - restart docker
+
+- name: install Swarm Consul Docker
+  docker:
+    image: progrium/consul
+    name: swarm-consul
+    ports:
+      - "8500:8500"
+    command:  -server -bootstrap
+    restart_policy: always

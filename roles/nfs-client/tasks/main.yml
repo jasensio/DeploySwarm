@@ -1,0 +1,20 @@
+---
+- name: Install  NFS Client
+  yum: name={{ item }} state=present
+  with_items:
+    - nfs-utils
+
+- name: Ensure rpcbind is running.
+  service: name=rpcbind state=started enabled=yes
+
+
+
+- name: Insert nfs share in fstab
+  mount: name=/opt src='192.168.1.225:/var/nfsshare' fstype=nfs state=mounted opts=defaults 
+#  lineinfile:
+#    dest: /etc/fstab
+#    regexp: "192.168.1.225:/var/nfsshare     /opt            nfs     defaults        0 0"
+#    insertafter: ".*swap.*defaults.*"
+#    line: "192.168.1.225:/var/nfsshare     /opt            nfs     defaults        0 0"
+#  notify:
+#    - mount all

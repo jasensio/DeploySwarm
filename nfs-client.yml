@@ -1,0 +1,3 @@
+- hosts: docker-node-web
+  roles:
+    - nfs-client

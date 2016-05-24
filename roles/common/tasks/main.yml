@@ -1,0 +1,74 @@
+---
+- name: Install libselinux-python
+  yum: name=libselinux-python state=present
+
+- name: install yum repo
+  copy: owner=root src=files/docker.repo dest=/etc/yum.repos.d/docker.repo
+
+- name: making sure epel installed
+  yum: name=epel-release state=present
+
+- name: Disable auto-start Firewalld
+  service: name=iptables enabled=no
+
+- name: Disable SELinux
+  selinux: state=disabled
+
+#- name: SELinux in Permissive mode
+#  selinux: policy=targeted state=permissive
+ 
+- name: Stopping daemon Firewalld
+  service: name=firewalld state=stopped
+  register: command_result
+  failed_when: "command_result|failed and 'systemd could not find the requested service' not in command_result.msg"
+
+- name: Install  iptables
+  yum: name={{ item }} state=present
+  with_items:
+    - iptables
+    - iptables-services
+
+- name: auto-start IPtables
+  service: name=iptables enabled=yes
+
+- name: Inser IPtables mark in config file
+  lineinfile:
+    dest: /etc/sysconfig/iptables
+    regexp: "^# Reglas INPUT  necesarias para Docker$"
+    insertbefore: "-A INPUT -j REJECT --reject-with icmp-host-prohibited"
+    line: "# Reglas INPUT  necesarias para Docker"
+  notify:
+    - restart iptables
+
+- name: Inser IPtables rule for internal bridge
+  lineinfile:
+    dest: /etc/sysconfig/iptables
+    regexp: "^-A INPUT -i docker0 -j ACCEPT$"
+    insertafter: "# Reglas INPUT  necesarias para Docker"
+    line: "-A INPUT -i docker0 -j ACCEPT"
+  notify:
+    - restart iptables
+
+
+- name: Install docker
+  yum: name={{ item }} state=present
+  with_items:
+     - docker-engine
+     - python-docker-py
+
+- name: auto-start Docker
+  service: name=docker enabled=yes     
+
+- name: making sure pip installed
+  yum: name=python-pip state=present 
+
+- name: Install docker-compose through pip
+  pip: name=docker-compose state=present
+
+- name: Demonio Docker running
+  service: name=docker state=started
+ 
+- name: Demonio IPtables running
+  service: name=iptables state=started
+- meta: flush_handlers
+
