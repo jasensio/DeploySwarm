@@ -1,19 +1,12 @@
 [docker-common]
-node01 ansible_host=192.168.88.211
-#node02 ansible_host=192.168.88.212
-#node03 ansible_host=192.168.88.213
-master01 ansible_host=192.168.88.210
+#web10 ansible_host=192.168.50.20
+web09 ansible_host=192.168.50.19
 
 [docker-node-web]
-node01 ansible_host=192.168.88.211
-#node02 ansible_host=192.168.88.212
-#node03 ansible_host=192.168.88.213
 
 [docker-node-web:vars]
 role_docker="--label role=php --label role=www"
 
 [docker-manager]
-master01 ansible_host=192.168.88.210
 
 [docker-consul]
-consul01 ansible_host=192.168.88.210

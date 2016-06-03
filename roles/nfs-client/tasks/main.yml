@@ -7,10 +7,28 @@
 - name: Ensure rpcbind is running.
   service: name=rpcbind state=started enabled=yes
 
+- name: Insert nfs share 01
+  mount: name=/home/cdn src='192.168.50.1:/home/cdn' fstype=nfs state=mounted opts=defaults
+
+- name: Insert nfs share 02
+  mount: name=/home/img src='192.168.50.1:/home/img' fstype=nfs state=mounted opts=defaults
+
+- name: Insert nfs share 03
+  mount: name=/home/thumb src='192.168.50.1:/home/thumb' fstype=nfs state=mounted opts=defaults
+
+- name: Insert nfs share 04
+  mount: name=/home/web_frontend src='192.168.50.1:/home/web_frontend' fstype=nfs state=mounted opts=defaults
+
+- name: Insert nfs share 05
+  mount: name=/home/web_anterior src='192.168.50.1:/home/componente/domains/pccomponentes.com/public_html' fstype=nfs state=mounted opts=defaults
+
+- name: Insert nfs share 06
+  mount: name=/home/componente/domains/pccomponentes.com/public_html src='192.168.50.1:/home/componente/domains/pccomponentes.com/public_html' fstype=nfs state=mounted opts=defaults
+
+- name: Insert nfs share 07
+  mount: name=/home/admin_frontend src='192.168.50.1:/home/admin_frontend' fstype=nfs state=mounted opts=defaults
 
 
-- name: Insert nfs share in fstab
-  mount: name=/opt src='192.168.1.225:/var/nfsshare' fstype=nfs state=mounted opts=defaults 
 #  lineinfile:
 #    dest: /etc/fstab
 #    regexp: "192.168.1.225:/var/nfsshare     /opt            nfs     defaults        0 0"

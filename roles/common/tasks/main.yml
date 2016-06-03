@@ -4,6 +4,7 @@
   tags:
     - base
     - yum
+
 - name: install yum repo
   copy: owner=root src=files/docker.repo dest=/etc/yum.repos.d/docker.repo
   tags:
@@ -16,8 +17,29 @@
     - base
     - yum
 
+- name: upgrade all packages
+  yum: name=* state=latest
+
+- name: install tmux
+  yum: name=tmux state=present
+  tags:
+    - base
+    - yum
+
+- name: install wget
+  yum: name=wget state=present
+  tags:
+    - base
+    - yum
+
+
+- name: Retrieve tmux config
+  command: wget -O /root/.tmux.conf http://www.dnspropio.com/despliegue/linux/tmux.conf
+  tags:
+    - base
+
 - name: Disable auto-start Firewalld
-  service: name=iptables enabled=no
+  service: name=firewalld enabled=no
   tags:
     - base
     - security
@@ -84,17 +106,17 @@
     - base
     - security
 
-- name: Inser IPtables rule for internal bridge
-  lineinfile:
-    dest: /etc/sysconfig/iptables
-    regexp: "^-A INPUT -i docker0 -j ACCEPT$"
-    insertafter: "# Reglas INPUT  necesarias para Docker"
-    line: "-A INPUT -i docker0 -j ACCEPT"
-  notify:
-    - restart iptables
-  tags:
-    - base
-    - security
+#- name: Inser IPtables rule for internal bridge
+#  lineinfile:
+#    dest: /etc/sysconfig/iptables
+#    regexp: "^-A INPUT -i docker0 -j ACCEPT$"
+#    insertafter: "# Reglas INPUT  necesarias para Docker"
+#    line: "-A INPUT -i docker0 -j ACCEPT"
+#  notify:
+#    - restart iptables
+#  tags:
+#    - base
+#    - security
 
 - name: Install docker
   yum: name={{ item }} state=present
